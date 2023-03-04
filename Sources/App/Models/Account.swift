@@ -17,13 +17,24 @@ final class Account: Model, Content {
     @ID(key: .id)
     var id: UUID?
     
-    @Field(key: "cycuId")
-    var cycuId: String
+    @Field(key: "userId")
+    var userId: String
+    
+    @Field(key: "userName")
+    var userName: String
+    
+    @Timestamp(key: "created_at", on: .create)
+    var createdAt: Date?
+    
+    @Timestamp(key: "updated_at", on: .update)
+    var updatedAt: Date?
     
     init() { }
     
-    init(id: UUID? = nil, cycuId: String) {
+    init(id: UUID? = nil, userId: String, userName: String) {
         self.id = id
-        self.cycuId = cycuId
+        self.userId = userId
+        self.userName = userName
     }
+    
 }

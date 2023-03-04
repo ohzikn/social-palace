@@ -1,6 +1,7 @@
 import Vapor
 import Fluent
 import FluentMySQLDriver
+import FluentSQLiteDriver
 import NIOSSL
 
 // configures your application
@@ -18,17 +19,17 @@ public func configure(_ app: Application) throws {
     let privateKey = try NIOSSLPrivateKey(file: "/etc/letsencrypt/live/zyozi.jp/privkey.pem", format: .pem)
     app.http.server.configuration.tlsConfiguration = TLSConfiguration.makeServerConfiguration(certificateChain: [.certificate(certificate)], privateKey: .privateKey(privateKey))
     
+    // register databases
+//    let tlsConfig = {
+//        var tls = TLSConfiguration.makeClientConfiguration()
+//        tls.certificateVerification = .none
+//        return tls
+//    }()
+//    app.databases.use(.mysql(hostname: "127.0.0.1", username: "vapor-server", password: "nopassword", database: "social-palace", tlsConfiguration: tlsConfig), as: .mysql)
+    app.databases.use(.sqlite(.file("db.social-palace")), as: .sqlite)
+    app.migrations.add(CreateAccount())
+    app.migrations.add(CreateMessageBoard())
+    
     // register routes
     try routes(app)
-    
-    let tlsConfig = {
-        var tls = TLSConfiguration.makeClientConfiguration()
-        tls.certificateVerification = .none
-        return tls
-    }()
-    
-    // register databases
-    app.databases.use(.mysql(hostname: "10.0.0.4", username: "vapor", password: "nopassword", database: "social-palace", tlsConfiguration: tlsConfig), as: .mysql)
-    
-    app.migrations.add(CreateAccount())
 }
