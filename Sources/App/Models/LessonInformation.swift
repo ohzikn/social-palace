@@ -1,5 +1,5 @@
 //
-//  CourseInformation.swift
+//  LessonInformation.swift
 //  
 //
 //  Created by 范喬智 on 2023/3/5.
@@ -9,8 +9,8 @@ import Foundation
 import Vapor
 import Fluent
 
-final class CourseInformation: Model {
-    static let schema: String = "courseInformation"
+final class LessonInformation: Model {
+    static let schema: String = "lessonInformation"
     
     @ID(key: .id)
     var id: UUID?

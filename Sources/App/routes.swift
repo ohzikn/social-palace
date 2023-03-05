@@ -20,12 +20,12 @@ func routes(_ app: Application) throws {
         // Exchange authenticate token with user information.
         do {
             let credentials = try req.content.decode(HttpModels.Credentials.self)
-            print("Authenticated credentials: \(credentials)")
+            req.logger.info("Authenticated credentials: \(credentials)")
             
             let authAccount = Account(userId: credentials.userId, userName: credentials.userName)
             
             // Check if user existed on database
-            print("Querying existing records...")
+            req.logger.info("Querying existing records...")
             let accounts = try await Account.query(on: req.db)
                 .filter(\.$userId == authAccount.userId)
                 .filter(\.$userName == authAccount.userName)
@@ -33,7 +33,7 @@ func routes(_ app: Application) throws {
             
             // Add record to database if user not existed
             if accounts.isEmpty {
-                print("Creating account on database...")
+                req.logger.info("Creating account on database...")
                 try await authAccount.create(on: req.db)
             }
             
@@ -43,12 +43,12 @@ func routes(_ app: Application) throws {
                 .filter(\.$userName == authAccount.userName)
                 .first() {
                 // Generate new access token
-                print("Generating access token...")
+                req.logger.info("Generating access token...")
                 let uuid = UUID()
                 RuntimeParameters.authenticatedSessions[uuid] = queryAccount
                 return uuid.uuidString
             } else {
-                print("Query returns empty record.")
+                req.logger.info("Query returns empty record.")
                 throw Abort(.internalServerError)
             }
                 
@@ -68,21 +68,21 @@ func routes(_ app: Application) throws {
         case .upload:
             do {
                 let uploadRequest = try req.content.decode(HttpModels.MessageBoardUploadRequest.self)
-                print(uploadRequest)
+                req.logger.info("\(uploadRequest)")
                 let senderUuid: UUID = UUID(uuidString: uploadRequest.authenticateToken)!
                 if let targetUser = RuntimeParameters.authenticatedSessions[senderUuid], let userId = targetUser.id {
                     if let message = uploadRequest.message, !message.isEmpty {
-                        print("Uploading message using sender token... \(senderUuid)")
+                        req.logger.info("Uploading message using sender token... \(senderUuid)")
                         try await MessageBoard(accountId: userId, message: message).create(on: req.db)
                     } else {
-                        print("Sender has uploaded an empty message.")
+                        req.logger.info("Sender has uploaded an empty message.")
                         throw Abort(.badRequest)
                     }
                 } else {
-                    print("Sender token is not authenticated. \(senderUuid)")
+                    req.logger.info("Sender token is not authenticated. \(senderUuid)")
                     throw Abort(.badRequest)
                 }
-                print("Message uploaded.")
+                req.logger.info("Message uploaded.")
             } catch {
                 throw Abort(.badRequest)
             }
@@ -96,7 +96,7 @@ private func getMessageBoardItems(req: Request) async throws -> HttpModels.Messa
     do {
 //        let tempAccountList = try await Account.query(on: req.db)
 //            .all()
-        print("Querying message board contents...")
+        req.logger.info("Querying message board contents...")
         let messages = try await MessageBoard.query(on: req.db)
             .sort(\.$updatedAt, .descending)
             .range(..<10)
@@ -109,10 +109,10 @@ private func getMessageBoardItems(req: Request) async throws -> HttpModels.Messa
             response.items.append(.init(userId: targetAccount?.userId, userName: targetAccount?.userName, message: item.message))
         }
 //        let tempAccountList = try await Account.query(on: req.db)
-        print("Query completed.")
+        req.logger.info("Query completed.")
         return response
     } catch {
-        print("Query failed.")
+        req.logger.info("Query failed.")
         throw Abort(.internalServerError)
     }
 }
