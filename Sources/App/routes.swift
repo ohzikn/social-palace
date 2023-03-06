@@ -63,7 +63,7 @@ func routes(_ app: Application) throws {
             throw Abort(.badRequest)
         }
         switch messageBoardCommand {
-        case .recieve:
+        case .retrieve:
             return try await getMessageBoardItems(req: req)
         case .upload:
             do {

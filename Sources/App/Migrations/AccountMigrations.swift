@@ -23,3 +23,17 @@ struct CreateAccount: AsyncMigration {
         try await database.schema("accounts").delete()
     }
 }
+
+struct UpdateAccount: AsyncMigration {
+    func prepare(on database: Database) async throws {
+        try await database.schema("accounts")
+            .field("deleted_at", .datetime)
+            .update()
+    }
+    
+    func revert(on database: Database) async throws {
+        try await database.schema("accounts")
+            .deleteField("deleted_at")
+            .update()
+    }
+}

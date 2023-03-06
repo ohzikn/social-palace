@@ -20,7 +20,7 @@ struct HttpModels {
     }
     
     enum MessageBoardCommands: String, CaseIterable {
-        case recieve
+        case retrieve
         case upload
     }
     
@@ -31,12 +31,23 @@ struct HttpModels {
     
     struct MessageBoardResponse: Content {
         var items: [MessageBoardItem] = []
+        
+        struct MessageBoardItem: Content {
+            var userId: String?
+            var userName: String?
+            var message: String?
+        }
     }
     
-    struct MessageBoardItem: Content {
-        var userId: String?
-        var userName: String?
-        var message: String?
+    enum LessonInfoCommands: String, CaseIterable {
+        case retrieve
+        case fetch
+        case sync
+    }
+    
+    struct LessonInfoUploadRequest: HttpMethodQueryBase, Content {
+        var authenticateToken: String
+        var items: [LessonInfo]
     }
 }
 

@@ -8,7 +8,8 @@ import NIOSSL
 public func configure(_ app: Application) throws {
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-
+    app.logger.info("Running in \(app.environment.name) mode.")
+    
     // basic configurations
     app.http.server.configuration.hostname = app.environment == .production ? "10.0.43.2" : "10.0.1.2"
     app.http.server.configuration.port = 8080
@@ -22,20 +23,17 @@ public func configure(_ app: Application) throws {
     }
     
     // register databases
-//    let tlsConfig = {
-//        var tls = TLSConfiguration.makeClientConfiguration()
-//        tls.certificateVerification = .none
-//        return tls
-//    }()
-//    app.databases.use(.mysql(hostname: "127.0.0.1", username: "vapor-server", password: "nopassword", database: "social-palace", tlsConfiguration: tlsConfig), as: .mysql)
     if #available(macOS 13.0, *) {
         app.databases.use(.sqlite(.file((app.environment == .production ? FileManager.default.urls(for: .developerDirectory, in: .userDomainMask).first?.appending(path: "Databases/social-palace/db.social-palace").absoluteString : FileManager.default.urls(for: .developerDirectory, in: .userDomainMask).first?.appending(path: "Databases/social-palace/db.social-palace-dev").absoluteString) ?? "")), as: .sqlite)
     } else {
         // Fallback on earlier versions
-        app.databases.use(.sqlite(.memory), as: .sqlite)
+        app.databases.use(.sqlite(.file("/db.social-palace")), as: .sqlite)
     }
     app.migrations.add(CreateAccount())
     app.migrations.add(CreateMessageBoard())
+    app.migrations.add(UpdateAccount())
+    app.migrations.add(UpdateMessageBoard())
+    app.migrations.add(CreateLessonInfo())
     
     // register routes
     try routes(app)

@@ -23,3 +23,18 @@ struct CreateMessageBoard: AsyncMigration {
         try await database.schema("messageBoard").delete()
     }
 }
+
+struct UpdateMessageBoard: AsyncMigration {
+    func prepare(on database: Database) async throws {
+        try await database.schema("messageBoard")
+            .field("deleted_at", .datetime)
+            .update()
+    }
+    
+    func revert(on database: Database) async throws {
+        try await database.schema("messageBoard")
+            .deleteField("deleted_at")
+            .update()
+    }
+}
+
